@@ -6,7 +6,7 @@
     <title>Klaster Kinerja Rumah Sakit</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100">
+<body class="bg-purple-100">
 
 <div class="container mx-auto p-4">
 
@@ -99,7 +99,7 @@
             <div class="p-4">
                 <div class="overflow-x-auto">
                     <h3 class="text-lg font-bold mb-2">Centroid</h3>
-                    <table class="table-auto w-full border-collapse border border-gray-200">
+                    <table class="table-auto w-full border-collapse border border-purple-200">
                         <thead>
                             <tr class="bg-pink-200">
                                 <th class="px-4 py-2 text-center bg-pink-300 text-pink-800">Centroid</th>
@@ -128,22 +128,22 @@
 
                 <div class="overflow-x-auto mt-4">
                     <h3 class="text-lg font-bold mb-2">Rumah Sakit</h3>
-                    <table class="table-auto w-full border-collapse border border-gray-200">
+                    <table class="table-auto w-full border-collapse border border-purple-200">
                         <thead>
-                            <tr class="bg-gray-100">
-                                <th class="px-4 py-2 text-center bg-gray-300 text-gray-800">Nama</th>
-                                <th class="px-4 py-2 text-center bg-gray-300 text-gray-800">Jumlah Tempat Tidur</th>
-                                <th class="px-4 py-2 text-center bg-gray-300 text-gray-800">Pasien Keluar</th>
-                                <th class="px-4 py-2 text-center bg-gray-300 text-gray-800">Hari Perawatan</th>
-                                <th class="px-4 py-2 text-center bg-gray-300 text-gray-800">Hari Perawatan Pasien</th>
-                                <th class="px-4 py-2 text-center bg-gray-300 text-gray-800">BOR</th>
-                                <th class="px-4 py-2 text-center bg-gray-300 text-gray-800">BTO</th>
-                                <th class="px-4 py-2 text-center bg-gray-300 text-gray-800">TOI</th>
-                                <th class="px-4 py-2 text-center bg-gray-300 text-gray-800">ALOS</th>
-                                <th class="px-4 py-2 text-center bg-gray-300 text-gray-800">Jarak ke C1</th>
-                                <th class="px-4 py-2 text-center bg-gray-300 text-gray-800">Jarak ke C2</th>
-                                <th class="px-4 py-2 text-center bg-gray-300 text-gray-800">Jarak ke C3</th>
-                                <th class="px-4 py-2 text-center bg-gray-300 text-gray-800">Klaster</th>
+                            <tr class="bg-purple-100">
+                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Nama</th>
+                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Jumlah Tempat Tidur</th>
+                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Pasien Keluar</th>
+                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Hari Perawatan</th>
+                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Hari Perawatan Pasien</th>
+                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">BOR</th>
+                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">BTO</th>
+                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">TOI</th>
+                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">ALOS</th>
+                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Jarak ke C1</th>
+                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Jarak ke C2</th>
+                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Jarak ke C3</th>
+                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Klaster</th>
                             </tr>
                         </thead>
                         <tbody>
