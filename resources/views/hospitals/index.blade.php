@@ -203,6 +203,33 @@
         </div>
     </div>
 
+    <div class="bg-white shadow-md rounded-lg mb-8">
+        <div class="p-4">
+            <h2 class="text-xl font-bold mb-4">Evaluasi dan Peningkatan</h2>
+            @foreach($finalIteration['hospitals'] as $hospital)
+                <div class="mb-6 p-4 border rounded-lg @if($hospital['cluster'] == 1) bg-red-100 @elseif($hospital['cluster'] == 2) bg-yellow-100 @else bg-green-100 @endif">
+                    <h3 class="text-lg font-bold mb-2">{{ $hospital['name'] }} (Klaster {{ $hospital['cluster'] }})</h3>
+                    <div class="mb-4">
+                        <h4 class="font-bold">Evaluasi:</h4>
+                        <ul class="list-disc pl-6">
+                            @foreach($hospital['evaluation'] as $eval)
+                                <li>{{ $eval }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold">Peningkatan yang Disarankan:</h4>
+                        <ul class="list-disc pl-6">
+                            @foreach($hospital['improvements'] as $improvement)
+                                <li>{{ $improvement }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+
 </div>
 
 </body>

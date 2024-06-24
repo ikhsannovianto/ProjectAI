@@ -39,6 +39,7 @@ class HospitalController extends Controller
         $this->normalizeData();
         $this->initializeCentroids();
         $this->runKMeans();
+        $this->evaluateHospitals();
 
         return view('hospitals.index', [
             'originalData' => $this->data,
@@ -53,7 +54,6 @@ class HospitalController extends Controller
         $maxValues = [];
         $minValues = [];
 
-        // Find min and max values for each attribute
         foreach ($this->data as $hospital) {
             foreach ($hospital as $key => $value) {
                 if ($key != 'name') {
@@ -68,13 +68,12 @@ class HospitalController extends Controller
             }
         }
 
-        // Normalize and scale data
         foreach ($this->data as $hospital) {
             $normalizedHospital = ['name' => $hospital['name']];
             foreach ($hospital as $key => $value) {
                 if ($key != 'name') {
                     $normalizedValue = ($value - $minValues[$key]) / ($maxValues[$key] - $minValues[$key]);
-                    $normalizedHospital[$key] = round($normalizedValue * 9) + 1; // Scale to 1-10
+                    $normalizedHospital[$key] = round($normalizedValue * 9) + 1;
                 }
             }
             $this->normalizedData[] = $normalizedHospital;
@@ -99,7 +98,6 @@ class HospitalController extends Controller
             $previousCentroids = $this->centroids;
             $this->clusters = [[], [], []];
 
-            // Assign points to clusters and calculate distances
             foreach ($this->normalizedData as &$hospital) {
                 $distances = [];
                 foreach ($this->centroids as $centroidIndex => $centroid) {
@@ -108,12 +106,10 @@ class HospitalController extends Controller
                 $closestCentroidIndex = array_search(min($distances), $distances);
                 $this->clusters[$closestCentroidIndex][] = $hospital;
                 
-                // Store distances for each hospital
                 $hospital['distances'] = $distances;
                 $hospital['cluster'] = $closestCentroidIndex + 1;
             }
 
-            // Recalculate centroids
             foreach ($this->clusters as $clusterIndex => $cluster) {
                 if (!empty($cluster)) {
                     $newCentroid = [];
@@ -157,5 +153,75 @@ class HospitalController extends Controller
             }
         }
         return true;
+    }
+
+    private function evaluateHospitals()
+    {
+        $finalIteration = end($this->iterations);
+        $clusterNames = ['Kinerja Kurang', 'Kinerja Cukup', 'Kinerja Baik'];
+
+        foreach ($finalIteration['hospitals'] as &$hospital) {
+            $clusterIndex = $hospital['cluster'] - 1;
+            $evaluation = [];
+            $improvements = [];
+
+            switch ($clusterIndex) {
+                case 0: // Kinerja Kurang
+                    $evaluation[] = "Kinerja rumah sakit berada di bawah rata-rata.";
+                    $improvements[] = "Lakukan evaluasi menyeluruh terhadap manajemen dan pelayanan rumah sakit.";
+                    $improvements[] = "Tingkatkan efisiensi penggunaan tempat tidur dan manajemen pasien.";
+                    $improvements[] = "Perbaiki kualitas pelayanan untuk meningkatkan kepuasan pasien.";
+                    break;
+                case 1: // Kinerja Cukup
+                    $evaluation[] = "Kinerja rumah sakit berada pada tingkat rata-rata.";
+                    $improvements[] = "Identifikasi area-area yang masih dapat ditingkatkan.";
+                    $improvements[] = "Optimalkan penggunaan sumber daya yang ada.";
+                    $improvements[] = "Tingkatkan efisiensi operasional untuk meningkatkan kinerja.";
+                    break;
+                case 2: // Kinerja Baik
+                    $evaluation[] = "Kinerja rumah sakit di atas rata-rata.";
+                    $improvements[] = "Pertahankan kinerja yang sudah baik.";
+                    $improvements[] = "Terus lakukan inovasi untuk meningkatkan kualitas pelayanan.";
+                    $improvements[] = "Bagikan praktik terbaik dengan rumah sakit lain di klaster yang lebih rendah.";
+                    break;
+            }
+
+            if ($hospital['bor'] < 60) {
+                $evaluation[] = "BOR rendah, menunjukkan penggunaan tempat tidur kurang optimal.";
+                $improvements[] = "Tingkatkan promosi layanan rumah sakit dan kerjasama dengan fasilitas kesehatan tingkat pertama.";
+            } elseif ($hospital['bor'] > 85) {
+                $evaluation[] = "BOR tinggi, menunjukkan beban kerja tinggi dan risiko kualitas pelayanan menurun.";
+                $improvements[] = "Pertimbangkan penambahan tempat tidur atau optimalisasi manajemen pasien.";
+            }
+
+            if ($hospital['bto'] < 30) {
+                $evaluation[] = "BTO rendah, menunjukkan kurangnya pemanfaatan tempat tidur.";
+                $improvements[] = "Tingkatkan efisiensi pelayanan dan promosi layanan rumah sakit.";
+            } elseif ($hospital['bto'] > 50) {
+                $evaluation[] = "BTO tinggi, menunjukkan tingginya perputaran penggunaan tempat tidur.";
+                $improvements[] = "Pastikan kualitas pelayanan tetap terjaga meski perputaran pasien tinggi.";
+            }
+
+            if ($hospital['toi'] < 1) {
+                $evaluation[] = "TOI rendah, risiko infeksi nosokomial tinggi dan kualitas pelayanan dapat menurun.";
+                $improvements[] = "Tingkatkan interval pergantian tempat tidur untuk menjaga kualitas dan keamanan.";
+            } elseif ($hospital['toi'] > 3) {
+                $evaluation[] = "TOI tinggi, menunjukkan kurangnya pemanfaatan tempat tidur.";
+                $improvements[] = "Tingkatkan efisiensi manajemen tempat tidur dan promosi layanan.";
+            }
+
+            if ($hospital['alos'] < 3) {
+                $evaluation[] = "ALOS rendah, perlu memastikan pasien tidak dipulangkan terlalu cepat.";
+                $improvements[] = "Evaluasi prosedur perawatan untuk memastikan kualitas pelayanan optimal.";
+            } elseif ($hospital['alos'] > 6) {
+                $evaluation[] = "ALOS tinggi, menunjukkan kemungkinan inefisiensi dalam perawatan.";
+                $improvements[] = "Evaluasi dan tingkatkan efisiensi proses perawatan pasien.";
+            }
+
+            $hospital['evaluation'] = $evaluation;
+            $hospital['improvements'] = $improvements;
+        }
+
+        $this->iterations[count($this->iterations) - 1] = $finalIteration;
     }
 }
