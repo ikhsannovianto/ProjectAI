@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 class HospitalController extends Controller
 {
+    // Properti untuk menyimpan data, data yang sudah dinormalisasi, centroid, cluster, dan iterasi
     private $data;
     private $normalizedData;
     private $centroids;
@@ -14,6 +15,7 @@ class HospitalController extends Controller
 
     public function index()
     {
+        // Data kinerja pelayanan rumah sakit yang akan dianalisis
         $this->data = [
             ['name' => 'RSUD DR. MOEWARDI', 'bed_count' => 887, 'patient_out' => 28480, 'care_days' => 216757, 'days_in_care' => 173244, 'bor' => 66.95, 'bto' => 32, 'toi' => 4, 'alos' => 6],
             ['name' => 'RST SLAMET RIYADI', 'bed_count' => 110, 'patient_out' => 4436, 'care_days' => 14027, 'days_in_care' => 9591, 'bor' => 34.94, 'bto' => 40, 'toi' => 6, 'alos' => 2],
@@ -36,11 +38,16 @@ class HospitalController extends Controller
             ['name' => 'RS ONKOLOGI SURAKARTA', 'bed_count' => 25, 'patient_out' => 611, 'care_days' => 1567, 'days_in_care' => 1524, 'bor' => 17.17, 'bto' => 24, 'toi' => 12, 'alos' => 2],
         ];
 
+        // Memanggil metode untuk menormalisasi data
         $this->normalizeData();
+        // Memanggil metode untuk inisialisasi centroid
         $this->initializeCentroids();
+        // Memanggil metode untuk menjalankan algoritma K-Means clustering
         $this->runKMeans();
+        // Memanggil metode untuk evaluasi rumah sakit berdasarkan hasil clustering
         $this->evaluateHospitals();
 
+        // Mengembalikan view dengan data yang akan ditampilkan
         return view('hospitals.index', [
             'originalData' => $this->data,
             'normalizedData' => $this->normalizedData,
@@ -48,12 +55,16 @@ class HospitalController extends Controller
         ]);
     }
 
+    // Metode untuk menormalisasi data rumah sakit
     private function normalizeData()
     {
+        // Menginisialisasi array untuk data yang dinormalisasi
         $this->normalizedData = [];
+        // Mencari nilai maksimum dan minimum untuk setiap atribut kecuali nama rumah sakit
         $maxValues = [];
         $minValues = [];
 
+        // Menentukan nilai maksimal dan minimal untuk setiap atribut kinerja pelayanan rumah sakit
         foreach ($this->data as $hospital) {
             foreach ($hospital as $key => $value) {
                 if ($key != 'name') {
@@ -68,6 +79,7 @@ class HospitalController extends Controller
             }
         }
 
+        // Normalisasi data untuk setiap rumah sakit berdasarkan nilai maksimum dan minimum
         foreach ($this->data as $hospital) {
             $normalizedHospital = ['name' => $hospital['name']];
             foreach ($hospital as $key => $value) {
@@ -76,40 +88,53 @@ class HospitalController extends Controller
                     $normalizedHospital[$key] = round($normalizedValue * 9) + 1;
                 }
             }
+            // Menyimpan data yang sudah dinormalisasi
             $this->normalizedData[] = $normalizedHospital;
         }
     }
 
+    // Metode untuk inisialisasi centroid
     private function initializeCentroids()
     {
+        // Mengambil tiga data pertama sebagai centroid awal
         $this->centroids = array_slice($this->normalizedData, 0, 3);
         foreach ($this->centroids as &$centroid) {
             unset($centroid['name']);
         }
     }
 
+    // Metode untuk menjalankan algoritma K-Means clustering
     private function runKMeans()
     {
+        // Inisialisasi iterasi dan batas maksimum iterasi
         $this->iterations = [];
-        $maxIterations = 100;
+        $maxIterations = 100; // Batas maksimum iterasi
         $iteration = 0;
 
+        // Iterasi K-Means
         do {
+            // Menyimpan centroid sebelumnya dan memperbarui klaster untuk setiap rumah sakit
             $previousCentroids = $this->centroids;
+            // Menginisialisasi cluster sebagai array kosong
             $this->clusters = [[], [], []];
 
+            // Mengelompokkan setiap rumah sakit ke centroid terdekat
             foreach ($this->normalizedData as &$hospital) {
                 $distances = [];
                 foreach ($this->centroids as $centroidIndex => $centroid) {
                     $distances[$centroidIndex] = $this->calculateDistance($hospital, $centroid);
                 }
+                // Menghitung jarak ke centroid terdekat
                 $closestCentroidIndex = array_search(min($distances), $distances);
+                // Memasukkan rumah sakit ke klaster yang sesuai
                 $this->clusters[$closestCentroidIndex][] = $hospital;
                 
+                // Menyimpan informasi jarak dan klaster pada rumah sakit
                 $hospital['distances'] = $distances;
                 $hospital['cluster'] = $closestCentroidIndex + 1;
             }
 
+            // Menghitung ulang centroid berdasarkan klaster baru
             foreach ($this->clusters as $clusterIndex => $cluster) {
                 if (!empty($cluster)) {
                     $newCentroid = [];
@@ -123,31 +148,37 @@ class HospitalController extends Controller
                 }
             }
 
+            // Menyimpan hasil iterasi saat ini
             $this->iterations[] = [
                 'iteration' => $iteration + 1,
                 'centroids' => $this->centroids,
                 'hospitals' => $this->normalizedData,
             ];
 
+            // Menghitung jumlah iterasi
             $iteration++;
         } while (!$this->centroidsConverged($previousCentroids) && $iteration < $maxIterations);
     }
 
+    // Metode untuk menghitung jarak Euclidean antara dua titik
     private function calculateDistance($point1, $point2)
     {
         $sum = 0;
         foreach ($point1 as $key => $value) {
             if ($key != 'name' && $key != 'distances' && $key != 'cluster') {
+                // Menghitung jarak kuadrat antara setiap atribut
                 $sum += pow($value - $point2[$key], 2);
             }
         }
         return sqrt($sum);
     }
 
+    // Metode untuk memeriksa apakah centroid sudah konvergen
     private function centroidsConverged($previousCentroids)
     {
-        $threshold = 0.001;
+        $threshold = 0.001; // Batas ambang konvergensi
         foreach ($this->centroids as $index => $centroid) {
+            // Memeriksa jarak antara centroid saat ini dan sebelumnya
             if ($this->calculateDistance($centroid, $previousCentroids[$index]) > $threshold) {
                 return false;
             }
@@ -155,16 +186,20 @@ class HospitalController extends Controller
         return true;
     }
 
+    // Metode untuk mengevaluasi kinerja rumah sakit berdasarkan hasil clustering
     private function evaluateHospitals()
     {
+        // Mendapatkan hasil iterasi terakhir
         $finalIteration = end($this->iterations);
         $clusterNames = ['Kinerja Kurang', 'Kinerja Cukup', 'Kinerja Baik'];
 
+        // Evaluasi rumah sakit dalam cluster terakhir
         foreach ($finalIteration['hospitals'] as &$hospital) {
             $clusterIndex = $hospital['cluster'] - 1;
             $evaluation = [];
             $improvements = [];
 
+            // Evaluasi dan saran perbaikan berdasarkan cluster
             switch ($clusterIndex) {
                 case 0: // Kinerja Kurang
                     $evaluation[] = "Kinerja rumah sakit berada di bawah rata-rata.";
@@ -186,6 +221,7 @@ class HospitalController extends Controller
                     break;
             }
 
+            // Evaluasi tambahan berdasarkan indikator spesifik rumah sakit
             if ($hospital['bor'] < 60) {
                 $evaluation[] = "BOR rendah, menunjukkan penggunaan tempat tidur kurang optimal.";
                 $improvements[] = "Tingkatkan promosi layanan rumah sakit dan kerjasama dengan fasilitas kesehatan tingkat pertama.";
@@ -218,10 +254,12 @@ class HospitalController extends Controller
                 $improvements[] = "Evaluasi dan tingkatkan efisiensi proses perawatan pasien.";
             }
 
+            // Menyimpan evaluasi dan saran perbaikan untuk setiap rumah sakit
             $hospital['evaluation'] = $evaluation;
             $hospital['improvements'] = $improvements;
         }
 
+        // Memperbarui hasil iterasi terakhir dengan hasil evaluasi
         $this->iterations[count($this->iterations) - 1] = $finalIteration;
     }
 }
