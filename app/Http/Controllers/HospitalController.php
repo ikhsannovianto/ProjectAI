@@ -40,6 +40,8 @@ class HospitalController extends Controller
 
         // Memanggil metode untuk menormalisasi data
         $this->normalizeData();
+        // Memanggil metode elbow untuk menentukan jumlah cluster terbaik
+        $elbowResult = $this->elbowMethod();
         // Memanggil metode untuk inisialisasi centroid
         $this->initializeCentroids();
         // Memanggil metode untuk menjalankan algoritma K-Means clustering
@@ -52,6 +54,7 @@ class HospitalController extends Controller
             'originalData' => $this->data,
             'normalizedData' => $this->normalizedData,
             'iterations' => $this->iterations,
+            'elbowResult' => $elbowResult,
         ]);
     }
 
@@ -91,6 +94,71 @@ class HospitalController extends Controller
             // Menyimpan data yang sudah dinormalisasi
             $this->normalizedData[] = $normalizedHospital;
         }
+    }
+
+    // Metode elbow untuk menentukan jumlah cluster terbaik
+    private function elbowMethod()
+    {
+        $maxClusters = 10;
+        $results = [];
+
+        for ($k = 1; $k <= $maxClusters; $k++) {
+            $centroids = $this->initializeRandomCentroids($k);
+            $clusters = $this->assignToClusters($centroids);
+            $wcss = $this->calculateWCSS($clusters, $centroids);
+            $results[] = ['k' => $k, 'wcss' => $wcss];
+        }
+
+        return $results;
+    }
+
+    private function initializeRandomCentroids($k)
+    {
+        srand(1234); // Set seed untuk hasil acak yang konsisten
+        $centroids = [];
+        $dataCount = count($this->normalizedData);
+
+        for ($i = 0; $i < $k; $i++) {
+            $randomIndex = rand(0, $dataCount - 1);
+            $centroids[] = $this->normalizedData[$randomIndex];
+        }
+
+        return $centroids;
+    }
+
+    private function assignToClusters($centroids)
+    {
+        $clusters = array_fill(0, count($centroids), []);
+
+        foreach ($this->normalizedData as $hospital) {
+            $minDistance = PHP_FLOAT_MAX;
+            $closestCluster = 0;
+
+            foreach ($centroids as $index => $centroid) {
+                $distance = $this->calculateDistance($hospital, $centroid);
+                if ($distance < $minDistance) {
+                    $minDistance = $distance;
+                    $closestCluster = $index;
+                }
+            }
+
+            $clusters[$closestCluster][] = $hospital;
+        }
+
+        return $clusters;
+    }
+
+    private function calculateWCSS($clusters, $centroids)
+    {
+        $wcss = 0;
+
+        foreach ($clusters as $index => $cluster) {
+            foreach ($cluster as $hospital) {
+                $wcss += pow($this->calculateDistance($hospital, $centroids[$index]), 2);
+            }
+        }
+
+        return $wcss;
     }
 
     // Metode untuk inisialisasi centroid

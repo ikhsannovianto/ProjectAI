@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Klaster Kinerja Rumah Sakit</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body class="bg-purple-100">
 
@@ -21,9 +22,9 @@
                         <tr class="bg-purple-100">
                             <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Nama</th>
                             <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Jumlah Tempat Tidur</th>
-                            <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Pasien Keluar</th>
-                            <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Hari Perawatan</th>
-                            <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Hari Perawatan Pasien</th>
+                            <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Pasien Keluar (Hidup + Mati)</th>
+                            <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Jumlah Hari Perawatan</th>
+                            <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Jumlah Lama Dirawat</th>
                             <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">BOR (%)</th>
                             <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">BTO (Kali)</th>
                             <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">TOI (Hari)</th>
@@ -60,9 +61,9 @@
                         <tr class="bg-purple-100">
                             <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Nama</th>
                             <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Jumlah Tempat Tidur</th>
-                            <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Pasien Keluar</th>
-                            <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Hari Perawatan</th>
-                            <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Hari Perawatan Pasien</th>
+                            <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Pasien Keluar (Hidup + Mati)</th>
+                            <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Jumlah Hari Perawatan</th>
+                            <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Jumlah Lama Dirawat</th>
                             <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">BOR</th>
                             <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">BTO</th>
                             <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">TOI</th>
@@ -90,6 +91,39 @@
         </div>
     </div>
 
+    <div class="bg-white shadow-md rounded-lg mb-8">
+        <div class="p-4">
+            <h2 class="text-xl font-bold mb-4">Metode Elbow</h2>
+            <div id="elbow-chart"></div>
+        </div>
+    </div>
+
+<script>
+    // Menggunakan PHP untuk mengonversi data ke JSON
+    var elbowData = <?php echo json_encode($elbowResult); ?>;
+    
+    var trace = {
+        x: elbowData.map(function(item) { return item.k; }),
+        y: elbowData.map(function(item) { return item.wcss; }),
+        mode: 'lines+markers',
+        type: 'scatter'
+    };
+
+    var layout = {
+        title: 'Metode Elbow untuk Menentukan Jumlah Cluster Optimal',
+        xaxis: {
+            title: 'Jumlah Cluster (k)',
+            dtick: 1, // Menampilkan angka dengan langkah 1
+            range: [1, 10] // Menentukan rentang sumbu x dari 1 hingga 10
+        },
+        yaxis: {
+            title: 'WCSS'
+        }
+    };
+
+    Plotly.newPlot('elbow-chart', [trace], layout);
+</script>
+
     <!-- Iterasi dan hasil klaster -->
     <?php foreach($iterations as $iteration): ?>
         <div class="bg-white shadow-md rounded-lg mb-8">
@@ -104,9 +138,9 @@
                             <tr class="bg-pink-200">
                                 <th class="px-4 py-2 text-center bg-pink-300 text-pink-800">Centroid</th>
                                 <th class="px-4 py-2 text-center bg-pink-300 text-pink-800">Jumlah Tempat Tidur</th>
-                                <th class="px-4 py-2 text-center bg-pink-300 text-pink-800">Pasien Keluar</th>
-                                <th class="px-4 py-2 text-center bg-pink-300 text-pink-800">Hari Perawatan</th>
-                                <th class="px-4 py-2 text-center bg-pink-300 text-pink-800">Hari Perawatan Pasien</th>
+                                <th class="px-4 py-2 text-center bg-pink-300 text-pink-800">Pasien Keluar (Hidup + Mati)</th>
+                                <th class="px-4 py-2 text-center bg-pink-300 text-pink-800">Jumlah Hari Perawatan</th>
+                                <th class="px-4 py-2 text-center bg-pink-300 text-pink-800">Jumlah Lama Dirawat</th>
                                 <th class="px-4 py-2 text-center bg-pink-300 text-pink-800">BOR</th>
                                 <th class="px-4 py-2 text-center bg-pink-300 text-pink-800">BTO</th>
                                 <th class="px-4 py-2 text-center bg-pink-300 text-pink-800">TOI</th>
@@ -133,9 +167,9 @@
                             <tr class="bg-purple-100">
                                 <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Nama</th>
                                 <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Jumlah Tempat Tidur</th>
-                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Pasien Keluar</th>
-                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Hari Perawatan</th>
-                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Hari Perawatan Pasien</th>
+                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Pasien Keluar (Hidup + Mati)</th>
+                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Jumlah Hari Perawatan</th>
+                                <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">Jumlah Lama Dirawat</th>
                                 <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">BOR</th>
                                 <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">BTO</th>
                                 <th class="px-4 py-2 text-center bg-purple-300 text-purple-800">TOI</th>
